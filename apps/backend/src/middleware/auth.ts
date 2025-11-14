@@ -1,28 +1,29 @@
-// Authentication middleware - verifies JWT token and attaches user to request
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Extract JWT token from Authorization header (format: "Bearer <token>")
-  const token = req.headers.authorization?.split(' ')[1];
+export const authMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ error: 'Unauthorized - No token provided' });
+    return res.status(401).json({ error: "Unauthorized - No token provided" });
   }
 
   try {
-    // Verify JWT token using secret from environment variables
-    // userId is a string (UUID) not a number
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { userId: string };
-    
-    // Attach user info to request object for use in route handlers
-    req.user = { 
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "fallback-secret"
+    ) as { userId: string };
+
+    req.user = {
       id: decoded.userId,
-      userId: decoded.userId // Both id and userId for compatibility
+      userId: decoded.userId,
     };
-    
-    next(); // Continue to next middleware/route handler
+
+    next();
   } catch (error) {
-    // Token verification failed (expired, invalid, etc.)
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
 };

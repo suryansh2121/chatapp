@@ -1,8 +1,5 @@
 "use client";
-
-// Dashboard page - main chat interface with friend list and messaging
-// Similar to WhatsApp interface
-import { useRouter } from "next/navigation"; // Use next/navigation for App Router (not next/router)
+import { useRouter } from "next/navigation"; 
 import { useEffect, useState, useRef } from "react";
 
 interface Friend {
@@ -63,24 +60,21 @@ export default function Dashboard() {
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [notifications, setNotifications] = useState<string[]>([]); // Store notification messages
+  const [notifications, setNotifications] = useState<string[]>([]); 
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isTyping, setIsTyping] = useState<{ [friendId: string]: boolean }>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   
-  // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchedUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
-
-  // Get environment variables (must be NEXT_PUBLIC_ for client-side)
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
   const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3002";
 
-  // Scroll to bottom of messages when new message arrives
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -89,22 +83,21 @@ export default function Dashboard() {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize dashboard - check auth, fetch data, connect WebSocket
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    // Redirect to login if not authenticated
+  
     if (!token) {
       router.push("/");
       return;
     }
 
-    // Fetch friends list
+ 
     const fetchFriends = async () => {
       try {
         const res = await fetch(`${BACKEND_URL}/friend/friends`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Fixed: Added space after Bearer
+            Authorization: `Bearer ${token}`, 
             "Content-Type": "application/json",
           },
         });
@@ -118,12 +111,12 @@ export default function Dashboard() {
       }
     };
 
-    // Fetch pending friend requests
+  
     const fetchRequests = async () => {
       try {
         const res = await fetch(`${BACKEND_URL}/friend/friend-request`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Fixed: Added space after Bearer
+            Authorization: `Bearer ${token}`, 
             "Content-Type": "application/json",
           },
         });
@@ -140,12 +133,12 @@ export default function Dashboard() {
     fetchFriends();
     fetchRequests();
 
-    // Connect to WebSocket server
+    
     const websocket = new WebSocket(WS_URL);
 
     websocket.onopen = () => {
       console.log("WebSocket connected");
-      // Authenticate with JWT token
+  
       websocket.send(
         JSON.stringify({
           type: "auth",
@@ -157,14 +150,14 @@ export default function Dashboard() {
     websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      // Handle different message types
+      
       if (data.type === "connected") {
         console.log("WebSocket authenticated:", data.userId);
       } else if (data.type === "message") {
-        // Received a new message
+       
         const message = data.message;
 
-        // Update messages if viewing this friend's chat
+        
         if (
           selectedFriend &&
           (message.fromId === selectedFriend.id ||
@@ -173,7 +166,6 @@ export default function Dashboard() {
           setMessages((prev) => [...prev, message]);
         }
 
-        // Show notification if not viewing this friend's chat
         if (
           !selectedFriend ||
           (message.fromId !== selectedFriend.id &&
@@ -185,16 +177,16 @@ export default function Dashboard() {
           ]);
         }
       } else if (data.type === "notification") {
-        // Friend request accepted/rejected or other notifications
+        
         setNotifications((prev) => [
           ...prev,
           data.notification.message || "New notification",
         ]);
-        // Refresh friends and requests
+        
         fetchFriends();
         fetchRequests();
       } else if (data.type === "typing") {
-        // Typing indicator
+        
         setIsTyping((prev) => ({
           ...prev,
           [data.fromId]: data.isTyping,
@@ -215,13 +207,13 @@ export default function Dashboard() {
 
     setWs(websocket);
 
-    // Cleanup on unmount
+  
     return () => {
       websocket.close();
     };
-  }, [router, BACKEND_URL, WS_URL]); // Fixed: Removed selectedFriend from deps to avoid reconnection
+  }, [router, BACKEND_URL, WS_URL]); 
 
-  // Fetch messages when a friend is selected
+  
   useEffect(() => {
     if (!selectedFriend) return;
 
@@ -234,7 +226,7 @@ export default function Dashboard() {
           `${BACKEND_URL}/messages/${selectedFriend.id}`,
           {
             headers: {
-              Authorization: `Bearer ${token}`, // Fixed: Added space after Bearer
+              Authorization: `Bearer ${token}`, 
               "Content-Type": "application/json",
             },
           }
@@ -268,14 +260,14 @@ export default function Dashboard() {
       JSON.stringify({
         type: "message",
         content: newMessage.trim(),
-        toId: selectedFriend.id, // Schema uses toId (not receiverId)
+        toId: selectedFriend.id, 
       })
     );
 
     // Clear input
     setNewMessage("");
 
-    // Clear typing indicator
+    
     setIsTyping((prev) => ({
       ...prev,
       [selectedFriend.id]: false,
@@ -297,7 +289,7 @@ export default function Dashboard() {
     );
   };
 
-  // Handle friend request response (accept/reject)
+  
   const handleFriendRequest = async (
     requestId: string,
     status: "accepted" | "rejected"
@@ -309,17 +301,17 @@ export default function Dashboard() {
       const res = await fetch(`${BACKEND_URL}/friend/friend-request/respond`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`, // Fixed: Added space after Bearer
+          Authorization: `Bearer ${token}`, 
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ requestId, status }),
       });
 
       if (res.ok) {
-        // Remove request from list
+  
         setRequests((prev) => prev.filter((req) => req.id !== requestId));
 
-        // Refresh friends list
+    
         const friendsRes = await fetch(`${BACKEND_URL}/friend/friends`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -337,7 +329,6 @@ export default function Dashboard() {
     }
   };
 
-  // Search for users
   const handleSearch = async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
@@ -375,7 +366,7 @@ export default function Dashboard() {
     }
   };
 
-  // Send friend request from search results
+  /
   const handleSendFriendRequestFromSearch = async (userId: string) => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -391,7 +382,7 @@ export default function Dashboard() {
       });
 
       if (res.ok) {
-        // Update search results to show pending status
+      
         setSearchResults((prev) =>
           prev.map((user) =>
             user.id === userId
@@ -419,12 +410,11 @@ export default function Dashboard() {
     }
   };
 
-  // Remove notification
+
   const removeNotification = (index: number) => {
     setNotifications((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Close search results when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -441,14 +431,13 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Left Sidebar - Friends List and Requests */}
+      
       <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="p-4 bg-green-600 text-white">
           <h1 className="text-xl font-bold">Chat App</h1>
         </div>
 
-        {/* Search Bar */}
         <div className="p-4 border-b border-gray-200 bg-gray-50 relative">
           <div className="relative">
             <input
@@ -473,7 +462,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Search Results */}
           {showSearchResults && searchResults.length > 0 && (
             <div className="absolute z-50 left-4 right-4 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
               <div className="p-2">
