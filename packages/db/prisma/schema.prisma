@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl    = env("DIRECT_URL")
+}
+
+model User {
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  password   String    // hashed
+  avatarUrl  String?
+  status     String?   // e.g., "Hey there"
+  createdAt  DateTime  @default(now())
+  // Friend relationships - when userId matches this user
+  friendsAsUser    Friend[]  @relation("user_friends")
+  // Friend relationships - when friendId matches this user
+  friendsAsFriend  Friend[]  @relation("friend_of")
+  // Friend requests sent by this user
+  sentRequests    FriendRequest[] @relation("sent_requests")
+  // Friend requests received by this user
+  receivedRequests FriendRequest[] @relation("received_requests")
+  // Messages sent by this user
+  sentMessages   Message[] @relation("sentMessages")
+  // Messages received by this user
+  receivedMessages Message[] @relation("receivedMessages")
+}
+
+model Friend {
+  id        String   @id @default(uuid())
+  userId    String   // The user who has this friend
+  friendId  String   // The friend's user ID
+  createdAt DateTime @default(now())
+
+  // Relation to the user (userId refers to this user)
+  user  User @relation("user_friends", fields: [userId], references: [id], onDelete: Cascade)
+  // Relation to the friend (friendId refers to this friend)
+  friend User @relation("friend_of", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+}
+
+model FriendRequest {
+  id         String   @id @default(uuid())
+  fromId     String
+  toId       String
+  status     String   @default("pending") // pending, accepted, rejected
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  from User @relation("sent_requests", fields: [fromId], references: [id])
+  to   User @relation("received_requests", fields: [toId], references: [id])
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  fromId     String
+  toId       String
+  content    String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+  seen       Boolean  @default(false)
+
+  from User @relation("sentMessages", fields: [fromId], references: [id])
+  to   User @relation("receivedMessages", fields: [toId], references: [id])
+}

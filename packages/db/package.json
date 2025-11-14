@@ -1,0 +1,24 @@
+{
+  "name": "@assignment/db",
+  "version": "1.0.0",
+  "description": "Shared Prisma database package for the monorepo",
+  "main": "index.ts",
+  "scripts": {
+    "generate": "dotenv -e ../../.env -- prisma generate",
+    "db:push": "dotenv -e ../../.env -- prisma db push",
+    "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "db:studio": "dotenv -e ../../.env -- prisma studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "prisma": "^6.19.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "dotenv-cli": "^7.4.2"
+  }
+}
