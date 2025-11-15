@@ -154,20 +154,20 @@ user2:"email": john.doe@example.com,
   - Requires: Authentication
 
 
-### ✅ Core Features (Implemented)
-- ✅ User signup and login with JWT authentication
-- ✅ Send friend requests
-- ✅ Accept/reject friend requests
-- ✅ Real-time messaging via WebSocket
-- ✅ Friend request notifications (toast notifications)
-- ✅ Dashboard with friend list and chat interface
-- ✅ Redis Pub/Sub for message broadcasting
+###  Core Features (Implemented)
+-  User signup and login with JWT authentication
+-  Send friend requests
+-  Accept/reject friend requests
+-  Real-time messaging via WebSocket
+-  Friend request notifications (toast notifications)
+-  Dashboard with friend list and chat interface
+-  Redis Pub/Sub for message broadcasting
 
-### 🎁 Bonus Features
-- ✅ Typing indicators
-- ✅ Message seen status
-- ✅ Online user tracking via WebSocket connections
-- ✅ Real-time notifications
+###  Bonus Features
+-  Typing indicators
+-  Message seen status
+-  Online user tracking via WebSocket connections
+-  Real-time notifications
 
 
 
